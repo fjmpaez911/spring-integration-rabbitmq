@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/integration
+                           http://www.springframework.org/schema/integration/spring-integration.xsd
+                           http://www.springframework.org/schema/integration/amqp
+                           http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
+                           http://www.springframework.org/schema/rabbit
+                           http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+
+    
+    <int:channel id="consumingNotificationsChannel" />
+
+    
+    <int-amqp:inbound-channel-adapter 
+    	channel="consumingNotificationsChannel" 
+    	queue-names="${queuing.notifications.queue}" 
+    	concurrent-consumers="${queuing.concurrent-consumers}" 
+    	prefetch-count="${queuing.prefetch-count}" 
+    	mapped-request-headers="*" 
+    	error-channel="errorChannel" 
+    	connection-factory="rabbitConnectionFactory" />
+
+    <int:chain input-channel="consumingNotificationsChannel">
+    	<int:json-to-object-transformer type="com.fjmpaez.queuing.pojo.Notification"/>
+        <int:service-activator ref="workingService"/>
+    </int:chain>
+
+	
+</beans>
